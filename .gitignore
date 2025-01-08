@@ -1,0 +1,5 @@
+echo "node_modules
+build
+.env
+.DS_Store
+npm-debug.log*" > server/.gitignore
