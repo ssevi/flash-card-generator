@@ -1,3 +1,10 @@
+
+// // Protected Route component
+// const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   const isAuthenticated = localStorage.getItem('token');
+//   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+// };
+
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -5,13 +12,21 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './components/theme/theme';
 import { AuthProvider } from './contexts/AuthContext';
+import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
-import ForgotPassword from './components/auth/ForgotPassword';
+import Dashboard from './pages/Dashboard';
+import Collections from './pages/Collections';
+import { useAuth } from './contexts/AuthContext';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('authToken');
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  const isAuthenticated = localStorage.getItem('token');
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <Layout>{children}</Layout>;
 };
 
 function App() {
@@ -22,13 +37,19 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/signup" element={<div>Sign Up Page (Coming Soon)</div>} />
             <Route
               path="/"
               element={
                 <ProtectedRoute>
-                  <div>Home Page</div>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections"
+              element={
+                <ProtectedRoute>
+                  <Collections />
                 </ProtectedRoute>
               }
             />
