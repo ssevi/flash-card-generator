@@ -6,6 +6,7 @@ import {
   Paper,
   Typography,
   useTheme,
+  Button,
 } from '@mui/material';
 
 const Dashboard = () => {
@@ -59,8 +60,8 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>
               Quick Actions
             </Typography>
-            {/* Add content here */}
-          </Paper>
+            <Button variant="outlined">Create Collections</Button>
+            </Paper>
         </Grid>
       </Grid>
     </Box>

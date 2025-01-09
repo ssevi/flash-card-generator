@@ -36,6 +36,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Move useEffect to top level
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Login Component: User is authenticated, navigating to home');
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -44,19 +52,12 @@ const Login = () => {
     validationSchema: validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        console.log('Login Component: Starting login process', values);
         setError(null);
+        console.log('Login Component: Starting login process', values);
         
         await login(values);
         console.log('Login Component: Login successful');
         
-        if (isAuthenticated) {
-          console.log('Login Component: Navigating to home');
-          navigate('/', { replace: true });
-        } else {
-          console.log('Login Component: Not authenticated after login');
-          setError('Authentication failed');
-        }
       } catch (err) {
         console.error('Login Component: Error during login:', err);
         setError(
@@ -106,9 +107,6 @@ const Login = () => {
               mb: 2
             }}
           />
-          <Typography component="h1" variant="h5" gutterBottom>
-            Sign in
-          </Typography>
 
           {(error || authError) && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
@@ -119,7 +117,7 @@ const Login = () => {
           <Box
             component="form"
             onSubmit={(e) => {
-              e.preventDefault(); // Add this line
+              e.preventDefault();
               formik.handleSubmit(e);
             }}
             noValidate

@@ -11,16 +11,19 @@ const authApi = axios.create({
   },
 });
 
-// Request interceptor
-// Debug interceptor
-authApi.interceptors.request.use(request => {
-  console.log('Starting Request:', {
-    url: request.url,
-    method: request.method,
-    data: request.data
-  });
-  return request;
-});
+// Add token to requests
+authApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor
 authApi.interceptors.response.use(
@@ -67,6 +70,8 @@ export const register = async (credentials: RegisterCredentials): Promise<{ user
 
 export const getCurrentUser = async (): Promise<User> => {
   const response = await authApi.get('/me');
+  console.log(response);
+  
   return response.data;
 };
 

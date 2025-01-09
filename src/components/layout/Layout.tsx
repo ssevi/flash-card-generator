@@ -16,14 +16,17 @@ import {
   IconButton,
   useTheme,
 } from '@mui/material';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Collections as CollectionsIcon,
-  Logout as LogoutIcon,
+  WidgetsOutlined as MenuIcon,
+  DashboardOutlined as DashboardIcon,
+  CollectionsBookmarkOutlined as CollectionsIcon,
+  AdminPanelSettingsOutlined as TeachersIcon,
+  Person3Outlined as ParentsIcon,
+  LogoutOutlined as LogoutIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-
+import logo from '../../assets/images/logo_nish.png';
 const drawerWidth = 240;
 
 interface LayoutProps {
@@ -40,6 +43,9 @@ const Layout = ({ children }: LayoutProps) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Collections', icon: <CollectionsIcon />, path: '/collections' },
+    { text: 'Teachers', icon: <TeachersIcon />, path: '/teachers' },
+    { text: 'Parents', icon: <ParentsIcon />, path: '/parents' },
+
   ];
 
   const handleDrawerToggle = () => {
@@ -58,9 +64,14 @@ const Layout = ({ children }: LayoutProps) => {
   const drawer = (
     <div>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Flash Card App
-        </Typography>
+      <Box display="flex" flexDirection="column" alignItems="center" width="100%" padding={1}>
+
+        <img src={logo} alt="logo of nish" width={100} />
+        
+        {/* <Typography variant="h6" component="div" sx={{fontWeight: 'bold'}}>
+          National Institute Of Speech and Hearing
+        </Typography> */}
+        </Box>
       </Toolbar>
       <Divider />
       <List>
@@ -69,8 +80,9 @@ const Layout = ({ children }: LayoutProps) => {
             <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => navigate(item.path)}
+              
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{color:'#3d59ab'}}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -81,7 +93,7 @@ const Layout = ({ children }: LayoutProps) => {
         <ListItem disablePadding>
           <ListItemButton onClick={handleLogout}>
             <ListItemIcon>
-              <LogoutIcon />
+              <LogoutIcon sx={{color:'#cd3700'}}/>
             </ListItemIcon>
             <ListItemText primary="Logout" />
           </ListItemButton>

@@ -1,10 +1,3 @@
-
-// // Protected Route component
-// const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-//   const isAuthenticated = localStorage.getItem('token');
-//   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-// };
-
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -17,10 +10,16 @@ import Login from './components/auth/Login';
 import Dashboard from './pages/Dashboard';
 import Collections from './pages/Collections';
 import { useAuth } from './contexts/AuthContext';
-
+import CreateCollection from './pages/CreateCollection';
+import CollectionPhotos from './pages/CollectionPhotos';
+import AddPhoto from './pages/AddPhoto';
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('token');
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
@@ -50,6 +49,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Collections />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections/create"
+              element={
+                <ProtectedRoute>
+                  <CreateCollection />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections/:id/cards"
+              element={
+                <ProtectedRoute>
+                  <CollectionPhotos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections/:id/photos/add"
+              element={
+                <ProtectedRoute>
+                  <AddPhoto />
                 </ProtectedRoute>
               }
             />
