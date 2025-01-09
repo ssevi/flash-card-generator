@@ -4,7 +4,7 @@ import authRoutes from './auth.routes';
 
 const router = Router();
 
-router.use('/auth', authRoutes);
+//router.use('/auth', authRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

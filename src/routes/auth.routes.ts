@@ -1,7 +1,7 @@
 // src/routes/auth.routes.ts
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
-import { login, createSampleUser } from '../controllers/auth.controller';
+import { login, createSampleUser, logout , getCurrentUser} from '../controllers/auth.controller';
 
 const router = Router();
 
@@ -15,7 +15,9 @@ const router = Router();
 
 //router.post('/register', authController.register);
 router.post('/login', login);
-//router.post('/logout', authMiddleware, authController.logout);
-//router.get('/me', authMiddleware, authController.getCurrentUser);
 router.post('/create-sample-user', createSampleUser);
+
+router.use(authMiddleware); // Apply auth middleware to all routes below
+router.post('/logout', authMiddleware, logout);
+router.get('/me', authMiddleware, getCurrentUser);
 export default router;

@@ -4,7 +4,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
-
+import collectionRoutes from './routes/collection.routes';
 // Load environment variables
 dotenv.config();
 
@@ -18,10 +18,11 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+// In your server's index.ts or app.ts
+app.use('/uploads', express.static('uploads'));
 // Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/collections', collectionRoutes);
 // Test route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
