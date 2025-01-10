@@ -13,6 +13,16 @@ import { useAuth } from './contexts/AuthContext';
 import CreateCollection from './pages/CreateCollection';
 import CollectionPhotos from './pages/CollectionPhotos';
 import AddPhoto from './pages/AddPhoto';
+import TeacherList from './pages/TeacherList';
+import CreateTeacher from './pages/CreateTeacher';
+import EditTeacher from './pages/EditTeacher';
+import CreateParent from './pages/CreateParent';
+import EditParent from './pages/EditParent';
+import Parents from './pages/Parents';
+
+
+
+
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -73,6 +83,54 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AddPhoto />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teachers"
+              element={
+                <ProtectedRoute>
+                  <TeacherList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teachers/create"
+              element={
+                <ProtectedRoute>
+                  <CreateTeacher />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teachers/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditTeacher />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parents"
+              element={
+                <ProtectedRoute>
+                  <Parents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parents/create"
+              element={
+                <ProtectedRoute>
+                  <CreateParent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parents/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditParent />
                 </ProtectedRoute>
               }
             />

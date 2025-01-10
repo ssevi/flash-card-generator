@@ -13,7 +13,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, EditOutlined as EditIcon, DeleteOutlineOutlined as DeleteIcon } from '@mui/icons-material';
 import { getCollections, Collection, getCollectionPhotos } from '../services/collection.service';
 
 const Collections = () => {
@@ -32,7 +32,7 @@ const Collections = () => {
       setError(null);
       const data = await getCollections();
       console.log('Fetched collections:', data);
-      
+
       // Ensure data is an array before setting it
       if (Array.isArray(data)) {
         // Fetch the photo count for each collection
@@ -97,12 +97,12 @@ const Collections = () => {
 
     return collections.map((collection) => (
       <Grid item xs={12} sm={6} md={4} key={collection._id}>
-        <Card>
+        <Card elevation={0} sx={{ border: '1px solid #e4e4e7' }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography sx={{ color: '#09090b', fontSize: '16px', fontWeight: 'bold' }} gutterBottom>
               {collection.title}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" >
               {collection.cardCount} cards
             </Typography>
             <Typography variant="body2" color="text.secondary" noWrap>
@@ -113,6 +113,7 @@ const Collections = () => {
             <Button
               size="small"
               onClick={() => navigate(`/collections/${collection._id}/cards`)}
+              sx={{ fontWeight: 'bold', color: '#263784' }}
             >
               View Cards
             </Button>
@@ -121,10 +122,10 @@ const Collections = () => {
               size="small"
               onClick={() => navigate(`/collections/${collection._id}/edit`)}
             >
-              <EditIcon />
+              <EditIcon sx={{color:'#03A89E'}}/>
             </IconButton>
             <IconButton size="small">
-              <DeleteIcon />
+              <DeleteIcon  sx={{color:'#CD3700'}}/>
             </IconButton>
           </CardActions>
         </Card>
@@ -135,9 +136,12 @@ const Collections = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Collections</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Collections</Typography>
         <Button
-          variant="contained"
+          disableElevation
+          variant="outlined"
+          size="small"
+          sx={{borderRadius:'20px'}}
           startIcon={<AddIcon />}
           onClick={() => navigate('/collections/create')}
         >

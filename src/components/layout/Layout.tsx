@@ -105,6 +105,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar
+      elevation={0}
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
