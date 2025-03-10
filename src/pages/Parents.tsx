@@ -117,8 +117,8 @@ const Parents = () => {
           </Button>
         </Paper>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} elevation={0}>
+          <Table >
             <TableHead>
               <TableRow>
                 <TableCell  sx={{fontWeight:'bold'}}>Name</TableCell>

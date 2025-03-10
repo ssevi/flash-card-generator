@@ -251,13 +251,11 @@ const EditParent = () => {
                   disabled={formik.isSubmitting}
                 />
               }
-              label="Can View Content"
+              label="Can Only View Content"
             />
-            <Typography variant="caption" color="textSecondary" display="block" sx={{ mt: 0.5 }}>
-              Parents with view permission can access all collections
-            </Typography>
-          </Box>
 
+          </Box>
+<Box>
           <FormControlLabel
             control={
               <Switch
@@ -267,9 +265,12 @@ const EditParent = () => {
                 disabled={formik.isSubmitting}
               />
             }
-            label="Can Download Content"
+            label="Can View and Download Content"
           />
-
+                      <Typography variant="caption" color="textSecondary" display="block" sx={{ mt: 0.5 }}>
+              Parents with view and download permission can access all collections
+            </Typography>
+</Box>
           <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button
               type="submit"

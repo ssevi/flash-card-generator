@@ -19,9 +19,7 @@ import EditTeacher from './pages/EditTeacher';
 import CreateParent from './pages/CreateParent';
 import EditParent from './pages/EditParent';
 import Parents from './pages/Parents';
-
-
-
+import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -40,7 +38,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <CustomThemeProvider>
       <CssBaseline />
       <AuthProvider>
         <Router>
@@ -137,7 +135,7 @@ function App() {
           </Routes>
         </Router>
       </AuthProvider>
-    </ThemeProvider>
+    </CustomThemeProvider>
   );
 }
 

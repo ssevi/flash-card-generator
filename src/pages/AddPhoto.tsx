@@ -1,4 +1,3 @@
-// src/pages/AddPhoto.tsx
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -10,6 +9,9 @@ import {
   Alert,
   CircularProgress,
   IconButton,
+  FormControlLabel,
+  Checkbox,
+  FormHelperText,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
@@ -20,6 +22,7 @@ interface FormValues {
   title: string;
   description: string;
   photo: File | null;
+  isRoyaltyFree: boolean;
 }
 
 const validationSchema = yup.object({
@@ -33,7 +36,11 @@ const validationSchema = yup.object({
       if (!(value instanceof File)) return false;
       const supportedFormats = ['image/jpeg', 'image/png', 'image/webp'];
       return supportedFormats.includes(value.type);
-    })
+    }),
+  isRoyaltyFree: yup
+    .boolean()
+    .oneOf([true], 'You must confirm that the image is royalty-free')
+    .required('You must confirm that the image is royalty-free'),
 });
 
 const AddPhoto = () => {
@@ -47,9 +54,10 @@ const AddPhoto = () => {
       title: '',
       description: '',
       photo: null,
+      isRoyaltyFree: false,
     },
     validationSchema,
-        onSubmit: async (values) => {
+    onSubmit: async (values) => {
       try {
         setUploadError(null);
         if (!values.photo) {
@@ -58,13 +66,6 @@ const AddPhoto = () => {
         if (!collectionId) {
           throw new Error('Collection ID is missing');
         }
-
-        console.log('Submitting photo:', {
-          collectionId,
-          title: values.title,
-          description: values.description,
-          photoName: values.photo.name
-        });
 
         await addPhotoToCollection(collectionId, {
           title: values.title,
@@ -79,11 +80,11 @@ const AddPhoto = () => {
       }
     },
   });
+
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     if (file) {
       formik.setFieldValue('photo', file);
-      // Cleanup previous preview URL if it exists
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -91,7 +92,6 @@ const AddPhoto = () => {
     }
   };
 
-  // Cleanup preview URL on component unmount
   React.useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -110,20 +110,48 @@ const AddPhoto = () => {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: '#FFFFFF',
+        position: 'relative',
+        p: 4,
+      }}
+    >
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4">Add Photo</Typography>
-        <Button variant="outlined" onClick={() => navigate(`/collections/${collectionId}/cards`)}>
+        <Typography variant="h4" sx={{ color: '#553C9A', fontWeight: 600 }}>Add Photo</Typography>
+        <Button 
+          variant="outlined" 
+          onClick={() => navigate(`/collections/${collectionId}/cards`)}
+          sx={{
+            color: '#6B46C1',
+            borderColor: '#6B46C1',
+            '&:hover': {
+              borderColor: '#553C9A',
+              bgcolor: '#F5F3FF',
+            },
+          }}
+        >
           Cancel
         </Button>
       </Box>
 
-      <Paper sx={{ p: 4, maxWidth: 'md', mx: 'auto' }}>
-      {uploadError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+      <Paper 
+        elevation={1}
+        sx={{ 
+          p: 4, 
+          maxWidth: 'md', 
+          mx: 'auto',
+          borderRadius: 4,
+          border: '1px solid #EDE9FE',
+        }}
+      >
+        {uploadError && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {uploadError}
           </Alert>
         )}
+        
         <form onSubmit={formik.handleSubmit}>
           <Box sx={{ mb: 3 }}>
             <input
@@ -138,7 +166,16 @@ const AddPhoto = () => {
                 variant="outlined"
                 component="span"
                 fullWidth
-                sx={{ height: 200, position: 'relative' }}
+                sx={{ 
+                  height: 200, 
+                  position: 'relative',
+                  borderColor: '#EDE9FE',
+                  color: '#6B46C1',
+                  '&:hover': {
+                    borderColor: '#6B46C1',
+                    bgcolor: '#F5F3FF',
+                  },
+                }}
               >
                 {previewUrl ? (
                   <>
@@ -153,7 +190,15 @@ const AddPhoto = () => {
                     />
                     <IconButton
                       size="small"
-                      sx={{ position: 'absolute', top: 8, right: 8 }}
+                      sx={{ 
+                        position: 'absolute', 
+                        top: 8, 
+                        right: 8,
+                        color: '#6B46C1',
+                        '&:hover': {
+                          bgcolor: '#F5F3FF',
+                        },
+                      }}
                       onClick={clearPhoto}
                     >
                       <CloseIcon />
@@ -165,7 +210,7 @@ const AddPhoto = () => {
               </Button>
             </label>
             {formik.touched.photo && formik.errors.photo && (
-              <Alert severity="error" sx={{ mt: 1 }}>
+              <Alert severity="error" sx={{ mt: 1, borderRadius: 2 }}>
                 {formik.errors.photo as string}
               </Alert>
             )}
@@ -180,7 +225,17 @@ const AddPhoto = () => {
             onChange={formik.handleChange}
             error={formik.touched.title && Boolean(formik.errors.title)}
             helperText={formik.touched.title && formik.errors.title}
-            sx={{ mb: 2 }}
+            sx={{ 
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: '#6B46C1',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#6B46C1',
+                },
+              },
+            }}
           />
 
           <TextField
@@ -194,15 +249,55 @@ const AddPhoto = () => {
             onChange={formik.handleChange}
             error={formik.touched.description && Boolean(formik.errors.description)}
             helperText={formik.touched.description && formik.errors.description}
-            sx={{ mb: 3 }}
+            sx={{ 
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: '#6B46C1',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#6B46C1',
+                },
+              },
+            }}
           />
+
+          <Box sx={{ mb: 3 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="isRoyaltyFree"
+                  checked={formik.values.isRoyaltyFree}
+                  onChange={formik.handleChange}
+                  sx={{
+                    color: '#6B46C1',
+                    '&.Mui-checked': {
+                      color: '#6B46C1',
+                    },
+                  }}
+                />
+              }
+              label="I confirm that this image is royalty-free and I have the rights to use it"
+              sx={{ color: '#553C9A' }}
+            />
+            {formik.touched.isRoyaltyFree && formik.errors.isRoyaltyFree && (
+              <FormHelperText error>{formik.errors.isRoyaltyFree}</FormHelperText>
+            )}
+          </Box>
 
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button
               type="submit"
               variant="contained"
               disabled={formik.isSubmitting}
-              sx={{ minWidth: 120 }}
+              sx={{ 
+                minWidth: 120,
+                bgcolor: '#6B46C1',
+                '&:hover': {
+                  bgcolor: '#553C9A',
+                },
+                boxShadow: 'none',
+              }}
             >
               {formik.isSubmitting ? <CircularProgress size={24} /> : 'Add Photo'}
             </Button>

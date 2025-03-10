@@ -41,6 +41,8 @@ authApi.interceptors.response.use(
 
 export const login = async (credentials: LoginCredentials): Promise<{ user: User; token: string }> => {
   const response = await authApi.post('/login', credentials);
+  console.log('response########################################', response);
+  
   return response.data;
 };
 

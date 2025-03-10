@@ -245,7 +245,7 @@ const CreateParent = () => {
                   disabled={formik.isSubmitting}
                 />
               }
-              label="Can View Content"
+              label="Can Only View Content"
             />
           </Box>
 
@@ -258,7 +258,7 @@ const CreateParent = () => {
                 disabled={formik.isSubmitting}
               />
             }
-            label="Can Download Content"
+            label="Can View and Download Content"
           />
 
           <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

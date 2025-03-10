@@ -1,7 +1,7 @@
 // src/services/teacher.service.ts
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+import { API_URL } from "../config";
 
 const teacherApi = axios.create({
   baseURL: `${API_URL}/teachers`,

@@ -1,7 +1,7 @@
 // src/services/collection.service.ts
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+import { BASE_URL, API_URL } from "../config";
 
 const collectionApi = axios.create({
   baseURL: `${API_URL}/collections`,
@@ -58,11 +58,28 @@ export interface Photo {
   title: string;
   description?: string;
 }
-
+interface CollectionWithPhotos {
+  collection: {
+    title: string;
+    description: string;
+  };
+  photos: Photo[];
+}
 // API Functions
 export const getCollections = async (): Promise<Collection[]> => {
   try {
     const response = await collectionApi.get('/');
+    console.log('Collections response:', response.data);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    throw error;
+  }
+};
+
+export const getAllCollections = async (): Promise<Collection[]> => {
+  try {
+    const response = await collectionApi.get('/all');
     console.log('Collections response:', response.data);
     return response.data.data || [];
   } catch (error) {
@@ -81,23 +98,26 @@ export const createCollection = async (collectionData: CreateCollectionData): Pr
   }
 };
 
-export const getCollectionPhotos = async (collectionId: string): Promise<Photo[]> => {
+export const getCollectionPhotos = async (collectionId: string): Promise<CollectionWithPhotos> => {
   try {
     const response = await collectionApi.get(`/${collectionId}/photos`);
     console.log('Raw response data:', response.data);
 
     // Map and modify URLs
-    const photos = response.data.data.map((photo: Photo) => {
-      console.log('Photo URL:', photo.url);      
-      return {
-        ...photo,
-        url: `${process.env.REACT_APP_API_URL_2}${photo.url}`
-        
-        
-      };
-    });
+    const photos = response.data.data.photos.items.map((photo: Photo) => ({
+      ...photo,
+      url: `${BASE_URL}${photo.url}`
+    }));
 
-    return photos;
+    // Return both collection data and photos
+    return {
+      collection: {
+        title: response.data.data.collection.title,
+        description: response.data.data.collection.description
+      },
+      photos: photos
+    };
+
   } catch (error) {
     console.error('Detailed error fetching collection photos:', error);
     throw error;
@@ -152,5 +172,16 @@ export const deletePhotoFromCollection = async (
     throw new Error(
       error.response?.data?.message || 'Failed to delete photo from collection'
     );
+  }
+};
+
+export const deleteCollection = async (collectionId: string): Promise<void> => {
+  try {
+  
+    const response = await collectionApi.delete(`/${collectionId}`);
+    return response.data;
+
+  } catch (error) {
+    throw new Error('Failed to delete collection');
   }
 };
