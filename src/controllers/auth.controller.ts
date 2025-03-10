@@ -1,14 +1,71 @@
-// src/controllers/auth.controller.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
-import { config } from '../config/config';
+import { Teacher } from '../models/teacher.model';
+import { Parent } from '../models/parent.model';
+import config from '../config/config';
 import { AppError } from '../middleware/error.middleware';
 
+const jwtSecret = config.jwtSecret as string;
+
 const generateToken = (userId: string): string => {
-  return jwt.sign({ sub: userId }, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn
-  });
+  return jwt.sign({ sub: userId }, jwtSecret, { expiresIn: "1h" });
+};
+
+const getPermissions = async (user: any) => {
+  switch (user.role) {
+    case 'teacher':
+      const teacherDetails = await Teacher.findOne({ email: user.email });
+      if (teacherDetails) {
+        return {
+          canUpload: teacherDetails.permissions.canUpload,
+          canDownload: teacherDetails.permissions.canDownload,
+          canEdit: teacherDetails.permissions.canEdit,
+          canDelete: teacherDetails.permissions.canDelete
+        };
+      }
+      return {
+        canUpload: false,
+        canDownload: true,
+        canEdit: false,
+        canDelete: false
+      };
+
+    case 'parent':
+      const parentDetails = await Parent.findOne({ email: user.email });
+      if (parentDetails) {
+        return {
+          canView: parentDetails.permissions.canView,
+          canDownload: parentDetails.permissions.canDownload
+        };
+      }
+      return {
+        canView: true,
+        canDownload: true
+      };
+
+    case 'admin':
+      return {
+        canUpload: true,
+        canDownload: true,
+        canEdit: true,
+        canDelete: true,
+        canManageUsers: true
+      };
+
+    case 'student':
+      return {
+        canView: true,
+        canDownload: true,
+        canSubmit: true
+      };
+
+    default:
+      return {
+        canView: true,
+        canDownload: false
+      };
+  }
 };
 
 export const login = async (
@@ -35,20 +92,25 @@ export const login = async (
     // Generate JWT token
     const token = generateToken(user._id as string);
 
+    // Get role-based permissions
+    const permissions = await getPermissions(user);
+
     // Remove password from output
     user.password = undefined;
 
     res.status(200).json({
       status: 'success',
       token,
-      user
+      user: {
+        ...user.toObject(),
+        permissions
+      }
     });
   } catch (error) {
     next(error);
   }
 };
 
-// For testing: Create a sample user
 export const createSampleUser = async (
   req: Request,
   res: Response,
@@ -62,37 +124,44 @@ export const createSampleUser = async (
       role: 'teacher'
     });
 
+    const permissions = await getPermissions(user);
+
     res.status(201).json({
       status: 'success',
       message: 'Sample user created',
       user: {
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        permissions
       }
     });
   } catch (error) {
     next(error);
   }
 };
+
 export const getCurrentUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // The user ID comes from the auth middleware
-    const userId = req.user.sub;
-
+    const userId = req.user._id;
     const user = await User.findById(userId).select('-password');
     
     if (!user) {
       return next(new AppError('User not found', 404));
     }
 
+    const permissions = await getPermissions(user);
+
     res.status(200).json({
       status: 'success',
-      data: user
+      data: {
+        ...user.toObject(),
+        permissions
+      }
     });
   } catch (error) {
     next(error);
@@ -105,18 +174,10 @@ export const logout = async (
   next: NextFunction
 ) => {
   try {
-    // In a stateless JWT setup, we don't need to do anything server-side
-    // The client will remove the token
-    
     res.status(200).json({
       status: 'success',
       message: 'Successfully logged out'
     });
-
-    // If you want to implement token blacklisting:
-    // const token = req.headers.authorization?.split(' ')[1];
-    // await BlacklistedToken.create({ token });
-    
   } catch (error) {
     next(error);
   }

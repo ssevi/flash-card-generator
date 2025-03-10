@@ -1,7 +1,7 @@
 // src/middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../config/config';
+import config  from '../config/config';
 import { AppError } from './error.middleware';
 import { User } from '../models/user.model';
 
@@ -37,7 +37,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     try {
       // Verify token
       const decoded = jwt.verify(token, config.jwtSecret) as any;
-      console.log('Token decoded:', decoded);
+      console.log('Token decoded:_____________________', decoded.sub);
 
       // Get user
       const user = await User.findById(decoded.sub).select('-password');

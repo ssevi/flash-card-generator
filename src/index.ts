@@ -10,17 +10,17 @@ import teacherRoutes from './routes/teacher.routes';
 import  parentRoutes  from './routes/parent.routes';
 
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { ConnectOptions } from 'mongoose';
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
-
-// Middleware
+const PORT: number = Number(process.env.PORT) || 5001;
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: '*', // Temporarily allow all origins for testing
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,13 +43,23 @@ app.use(notFound);
 // Global error handler
 app.use(errorHandler);
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/flashcard_db')
-  .then(() => {
+interface IConnectOptions extends ConnectOptions {
+  useNewUrlParser: boolean;
+  useUnifiedTopology: boolean;
+}
+
+const connectOptions: IConnectOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/flashcard_db', connectOptions)
+  .then((): void => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', (): void => {
       console.log(`Server is running on port ${PORT}`);
     });
   })
-  .catch((error) => {
+  .catch((error: Error): void => {
     console.error('MongoDB connection error:', error);
   });

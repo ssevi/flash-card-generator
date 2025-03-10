@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import { Parent } from '../models/parent.model';
 import { ApiError } from '../utils/ApiError';
+import { User } from '../models/user.model';
+import mongoose from "mongoose";
 
+import bcrypt from 'bcryptjs';
 
   // Get all parents
  export const getAllParents = async (req: Request, res: Response)=> {
@@ -33,74 +36,114 @@ import { ApiError } from '../utils/ApiError';
     }
   };
 
-  // Create parent
-  export const createParent = async (req: Request, res: Response)=> {
 
+  export const createParent = async (req: Request, res: Response) => {
     try {
-      const existingParent = await Parent.findOne({ email: req.body.email });
+      const { name, email, password, department, permissions, childAge, childName } = req.body;
+  
+      // Check if the email is already in use
+      const existingParent = await Parent.findOne({ email });
       if (existingParent) {
-        throw new ApiError(400, 'Email already in use');
+        return res.status(400).json({ error: "Email already in use" });
       }
-
-      const parent = await Parent.create(req.body);
-      const { password, ...parentWithoutPassword } = parent.toObject(); // Remove password from response
-      
-      res.status(201).json({
-        status: 'success',
-        data: parent
+  
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Create Parent
+      const parent = new Parent({
+        name,
+        email,
+        department,
+        permissions,
+        childAge,
+        childName,
+        password: hashedPassword,
+      });
+  
+      await parent.save();
+  
+      // Create User
+      const user = new User({
+        email,
+        password,
+        name,
+        role: "student",
+      });
+  
+      await user.save();
+  
+      // Remove password before sending response
+      const { password: _, ...parentWithoutPassword } = parent.toObject();
+  
+      return res.status(201).json({
+        status: "success",
+        data: parentWithoutPassword,
       });
     } catch (error) {
-      throw new ApiError(500, 'Error creating parent');
+      console.error("Error creating parent:", error);
+      return res.status(500).json({ error: "Error creating parent" });
     }
   };
-
-  // Update parent
-  export const updateParent = async (req: Request, res: Response)=> {
-
+  
+  
+  export const updateParent = async (req: Request, res: Response) => {
     try {
-      if (req.body.email) {
-        const existingParent = await Parent.findOne({ 
-          email: req.body.email,
-          _id: { $ne: req.params.id }
-        });
-        
+      const { email, name, department, permissions, childAge, childName } = req.body;
+      const parentId = req.params.id;
+  
+      // Check if email is already in use by another parent
+      if (email) {
+        const existingParent = await Parent.findOne({ email, _id: { $ne: parentId } });
         if (existingParent) {
-          throw new ApiError(400, 'Email already in use');
+          return res.status(400).json({ error: "Email already in use" });
         }
       }
-
+  
+      // Update Parent
       const parent = await Parent.findByIdAndUpdate(
-        req.params.id,
-        { $set: req.body },
+        parentId,
+        { $set: { name, email, department, permissions, childAge, childName } },
         { new: true, runValidators: true }
-      ).select('-password');
-
+      ).select("-password");
+  
       if (!parent) {
-        throw new ApiError(404, 'Parent not found');
+        return res.status(404).json({ error: "Parent not found" });
       }
-
+  
+      // Update corresponding User
+      await User.findOneAndUpdate(
+        { email: parent.email },
+        { $set: { name, email } },
+        { new: true }
+      );
+  
       res.status(200).json({
-        status: 'success',
-        data: parent
+        status: "success",
+        data: parent,
       });
     } catch (error) {
-      throw new ApiError(500, 'Error updating parent');
+      console.error("Error updating parent:", error);
+      res.status(500).json({ error: "Error updating parent" });
     }
   };
-
-  // Delete parent
-  export const deleteParent = async (req: Request, res: Response)=> {
-    try {
-      const parent = await Parent.findByIdAndDelete(req.params.id);
-      if (!parent) {
-        throw new ApiError(404, 'Parent not found');
-      }
-
-      res.status(200).json({
-        status: 'success',
-        message: 'Parent deleted successfully'
-      });
-    } catch (error) {
-      throw new ApiError(500, 'Error deleting parent');
+  
+export const deleteParent = async (req: Request, res: Response) => {
+  try {
+    const parent = await Parent.findById(req.params.id);
+    if (!parent) {
+      return res.status(404).json({ status: 'error', message: 'Parent not found' });
     }
-  };
+
+    // Delete associated user first
+    await User.findOneAndDelete({ email: parent.email });
+
+    // Now delete parent
+    await Parent.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ status: 'success', message: 'Parent deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting parent:', error);
+    res.status(500).json({ status: 'error', message: 'Error deleting parent' });
+  }
+};

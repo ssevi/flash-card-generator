@@ -46,14 +46,25 @@ export const addPhoto = async (req: Request, res: Response) => {
           message: 'Collection not found'
         });
       }
+  console.log('collection:____________________', collection);
   
       // Find all photos for this collection
       const photos = await Photo.find({ collectionId });
+  //console.log('photos:', photos);
   
       res.status(200).json({
         status: 'success',
         count: photos.length,
-        data: photos
+        data: {
+          collection: {
+            title: collection.title,
+            description: collection.description
+          },
+          photos: {
+            count: photos.length,
+            items: photos
+          }
+        }
       });
     } catch (error) {
       console.error('Error fetching photos:', error);

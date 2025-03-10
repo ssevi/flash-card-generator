@@ -1,6 +1,6 @@
 // server/src/routes/collection.routes.ts
 import express from 'express';
-import { createCollection,  getCollections } from '../controllers/collection.controller';
+import { createCollection,  getCollections, deleteCollection, getAllCollections } from '../controllers/collection.controller';
 import { addPhoto } from '../controllers/photo.controller';
 
 import multer from 'multer';
@@ -43,10 +43,13 @@ router.post('/:id/photos', authMiddleware, upload.single('photo'), photoControll
 router.get('/:id/photos', authMiddleware, photoController.getPhotos);
 router.delete('/:id/photos/:photoId', authMiddleware, photoController.deletePhoto);
 
+router.delete('/:id',authMiddleware, deleteCollection);
 
 
 
 router.post('/', authMiddleware, createCollection);
 router.get('/', authMiddleware, getCollections);
+router.get('/all', authMiddleware, getAllCollections);
+
 
 export default router;
