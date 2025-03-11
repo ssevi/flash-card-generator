@@ -2,8 +2,8 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "target": "es2017",
-    "module": "commonjs",
+    "target": "ESNext",
+    "module": "Commonjs",
 
     "lib": ["es6"],
     "allowJs": true,
