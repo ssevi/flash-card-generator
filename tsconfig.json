@@ -1,8 +1,10 @@
 // server/tsconfig.json
 {
   "compilerOptions": {
+    "moduleResolution": "node",
     "target": "es2017",
     "module": "commonjs",
+
     "lib": ["es6"],
     "allowJs": true,
     "outDir": "build",
@@ -12,7 +14,8 @@
     "types": ["node"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+   
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build"]
