@@ -3,13 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes.mjs';
-import collectionRoutes from './routes/collection.routes';
-import teacherRoutes from './routes/teacher.routes';
+import authRoutes from './routes/auth.routes.js';
+import collectionRoutes from './routes/collection.routes.js';
+import teacherRoutes from './routes/teacher.routes.js';
 
-import  parentRoutes  from './routes/parent.routes';
+import  parentRoutes  from './routes/parent.routes.js';
 
-import { errorHandler, notFound } from './middleware/errorHandler';
+import { errorHandler, notFound } from './middleware/errorHandler.mjs';
 import { ConnectOptions } from 'mongoose';
 // Load environment variables
 dotenv.config();

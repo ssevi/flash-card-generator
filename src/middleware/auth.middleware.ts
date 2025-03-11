@@ -1,9 +1,9 @@
 // src/middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import config  from '../config/config.mjs';
-import { AppError } from './error.middleware.mjs';
-import { User } from '../models/user.model.mjs';
+import config  from '../config/config.js';
+import { AppError } from './error.middleware.js';
+import { User } from '../models/user.model.js';
 
 // Extend the Request type to include user
 declare global {

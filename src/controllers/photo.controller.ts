@@ -1,7 +1,7 @@
 // server/src/controllers/photo.controller.ts
 import { Request, Response } from 'express';
-import { Collection } from '../models/collection.model.mjs';
-import { Photo } from '../models/photo.model.mjs';
+import { Collection } from '../models/collection.model.js';
+import { Photo } from '../models/photo.model.js';
 export const addPhoto = async (req: Request, res: Response) => {
     try {
       const collectionId = req.params.id;

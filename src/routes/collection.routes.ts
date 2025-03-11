@@ -1,12 +1,12 @@
 // server/src/routes/collection.routes.ts
 import express from 'express';
-import { createCollection,  getCollections, deleteCollection, getAllCollections } from '../controllers/collection.controller';
-import { addPhoto } from '../controllers/photo.controller';
+import { createCollection,  getCollections, deleteCollection, getAllCollections } from '../controllers/collection.controller.mjs';
+import { addPhoto } from '../controllers/photo.controller.mjs';
 
 import multer from 'multer';
 import path from 'path';
-import { authMiddleware } from '../middleware/auth.middleware.mjs';
-import * as photoController from '../controllers/photo.controller';
+import { authMiddleware } from '../middleware/auth.middleware.js';
+import * as photoController from '../controllers/photo.controller.mjs';
 
 const router = express.Router();
 

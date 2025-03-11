@@ -1,8 +1,8 @@
 // server/src/controllers/teacher.controller.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { Teacher } from '../models/teacher.model.mjs';
-import { User } from '../models/user.model.mjs';
+import { Teacher } from '../models/teacher.model.js';
+import { User } from '../models/user.model.js';
 
 export const createTeacher = async (req: Request, res: Response) => {
 

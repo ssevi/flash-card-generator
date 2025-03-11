@@ -1,7 +1,7 @@
 // server/src/routes/parent.routes.ts
 import express from 'express';
-import { createParent, getAllParents, updateParent, getAParent, deleteParent } from '../controllers/parent.controller';
-import { authMiddleware } from '../middleware/auth.middleware.mjs';
+import { createParent, getAllParents, updateParent, getAParent, deleteParent } from '../controllers/parent.controller.mjs';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
