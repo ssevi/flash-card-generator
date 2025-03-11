@@ -9,7 +9,7 @@ import teacherRoutes from './routes/teacher.routes.js';
 
 import  parentRoutes  from './routes/parent.routes.js';
 
-import { errorHandler, notFound } from './middleware/errorHandler.mjs';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { ConnectOptions } from 'mongoose';
 // Load environment variables
 dotenv.config();

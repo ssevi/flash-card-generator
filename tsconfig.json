@@ -1,23 +1,12 @@
-// server/tsconfig.json
 {
   "compilerOptions": {
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "target": "ESNext",
-    "module": "Commonjs",
-
-    "lib": ["es6"],
-    "allowJs": true,
     "outDir": "build",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
-    "types": ["node"],
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-   "allowSyntheticDefaultImports": true
-
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build"]
+    "forceConsistentCasingInFileNames": true
+  }
 }
