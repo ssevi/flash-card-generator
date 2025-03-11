@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes';
+import authRoutes from './routes/auth.routes.mjs';
 import collectionRoutes from './routes/collection.routes';
 import teacherRoutes from './routes/teacher.routes';
 

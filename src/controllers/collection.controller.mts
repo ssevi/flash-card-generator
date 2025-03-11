@@ -1,7 +1,7 @@
 // server/src/controllers/collection.controller.ts
 import { Request, Response } from 'express';
-import { Collection } from '../models/collection.model';
-import { Photo } from '../models/photo.model';
+import { Collection } from '../models/collection.model.mjs';
+import { Photo } from '../models/photo.model.mjs';
 
 export const createCollection = async (req: Request, res: Response) => {
   try {

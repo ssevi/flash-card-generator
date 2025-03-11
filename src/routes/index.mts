@@ -1,6 +1,6 @@
 // src/routes/index.ts
 import { Router } from 'express';
-import authRoutes from './auth.routes';
+import authRoutes from './auth.routes.mjs';
 
 const router = Router();
 

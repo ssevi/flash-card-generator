@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model';
-import { Teacher } from '../models/teacher.model';
-import { Parent } from '../models/parent.model';
-import config from '../config/config';
-import { AppError } from '../middleware/error.middleware';
+import { User } from '../models/user.model.mjs';
+import { Teacher } from '../models/teacher.model.mjs';
+import { Parent } from '../models/parent.model.mjs';
+import config from '../config/config.mjs';
+import { AppError } from '../middleware/error.middleware.mjs';
 
 const jwtSecret = config.jwtSecret as string;
 

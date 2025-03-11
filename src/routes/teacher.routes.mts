@@ -1,7 +1,7 @@
 // server/src/routes/teacher.routes.ts
 import express from 'express';
 import { createTeacher, getAllTeachers, updateTeacher, getATeacher, deleteTeacher } from '../controllers/teacher.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware.mjs';
 
 const router = express.Router();
 

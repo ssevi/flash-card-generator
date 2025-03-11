@@ -5,7 +5,7 @@ import { addPhoto } from '../controllers/photo.controller';
 
 import multer from 'multer';
 import path from 'path';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware.mjs';
 import * as photoController from '../controllers/photo.controller';
 
 const router = express.Router();

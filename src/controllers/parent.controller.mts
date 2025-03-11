@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { Parent } from '../models/parent.model';
-import { ApiError } from '../utils/ApiError';
-import { User } from '../models/user.model';
+import { Parent } from '../models/parent.model.mjs';
+import { ApiError } from '../utils/ApiError.mjs';
+import { User } from '../models/user.model.mjs';
 import mongoose from "mongoose";
 
 import bcrypt from 'bcryptjs';

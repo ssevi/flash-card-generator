@@ -1,6 +1,6 @@
 // src/config/database.ts
 import mongoose from 'mongoose';
-import { config } from './config';
+import { config } from './config.mjs';
 
 export const connectDB = async (): Promise<void> => {
   try {
