@@ -9,7 +9,7 @@
     },
 "scripts": {
   "start": "node build/index.js",
- "start:ts": "ts-node src/index.ts",
+  "start:ts": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\"}' ts-node src/index.ts",
   "dev": "nodemon --exec ts-node src/index.ts",
   "build": "tsc",
   "watch-ts": "tsc -w"
