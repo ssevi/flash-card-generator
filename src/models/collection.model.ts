@@ -7,6 +7,7 @@ export interface ICollection extends Document {
   category: string;
   userId: mongoose.Types.ObjectId;
   cardCount: number;
+  photoOrder: mongoose.Types.ObjectId[]; // Add this line
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +37,10 @@ const collectionSchema = new Schema({
   cardCount: {
     type: Number,
     default: 0
+  },
+  photoOrder: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: []
   }
 }, {
   timestamps: true

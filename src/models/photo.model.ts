@@ -2,6 +2,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPhoto extends Document {
+  _id: mongoose.Types.ObjectId;
   title: string;
   description?: string;
   url: string;

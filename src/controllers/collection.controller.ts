@@ -66,6 +66,66 @@ export const getCollections = async (req: Request, res: Response) => {
       });
     }
   };
+  export const updatePhotoOrder = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;  // Collection ID
+      const { photoIds } = req.body;  // Array of photo IDs in their new order
+      
+      if (!Array.isArray(photoIds) || photoIds.length === 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid photo order data'
+        });
+      }
+  
+      // Validate collection exists
+      const collection = await Collection.findById(id);
+      if (!collection) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Collection not found'
+        });
+      }
+  
+      // Validate user has permission to modify this collection
+      if (collection.userId.toString() !== req.user.id) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have permission to modify this collection'
+        });
+      }
+  
+      // Verify all photos exist and belong to this collection
+      const photos = await Photo.find({
+        _id: { $in: photoIds },
+        collectionId: id
+      });
+  
+      if (photos.length !== photoIds.length) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'One or more photos do not exist or do not belong to this collection'
+        });
+      }
+  
+      // Since you don't have an explicit 'order' field, we'll create a new array 
+      // with the correct order and save it to a custom field in the collection
+      await Collection.findByIdAndUpdate(id, {
+        photoOrder: photoIds
+      });
+  
+      res.status(200).json({
+        status: 'success',
+        message: 'Photo order updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating photo order:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Failed to update photo order'
+      });
+    }
+  };
 
   export const deleteCollection = async (req: Request, res: Response) => {
     try {

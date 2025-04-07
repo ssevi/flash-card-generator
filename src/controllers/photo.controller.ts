@@ -1,7 +1,7 @@
 // server/src/controllers/photo.controller.ts
 import { Request, Response } from 'express';
 import { Collection } from '../models/collection.model.js';
-import { Photo } from '../models/photo.model.js';
+import { Photo, type IPhoto } from '../models/photo.model.js';
 export const addPhoto = async (req: Request, res: Response) => {
     try {
       const collectionId = req.params.id;
@@ -36,41 +36,59 @@ export const addPhoto = async (req: Request, res: Response) => {
   };
   export const getPhotos = async (req: Request, res: Response) => {
     try {
-      const collectionId = req.params.id;
-  
-      // Validate that the collection exists
-      const collection = await Collection.findById(collectionId);
+      const { id } = req.params;
+      
+      const collection = await Collection.findById(id);
       if (!collection) {
         return res.status(404).json({
           status: 'error',
           message: 'Collection not found'
         });
       }
-  console.log('collection:____________________', collection);
-  
-      // Find all photos for this collection
-      const photos = await Photo.find({ collectionId });
-  //console.log('photos:', photos);
-  
+      
+      // Use the TypeScript interface from your import
+      let photos: IPhoto[] = await Photo.find({ collectionId: id });
+      
+      // Sort photos according to the saved order if it exists
+      if (Array.isArray(collection.photoOrder) && collection.photoOrder.length > 0) {
+        // Convert to Map for efficient lookup
+        const photosMap = new Map(photos.map(photo => [photo._id.toString(), photo]));
+        
+        // Order the photos according to photoOrder, including any photos not in the order at the end
+        const orderedPhotos: IPhoto[] = [];
+        
+        // First add photos in the specified order
+        collection.photoOrder.forEach(photoId => {
+          const photo = photosMap.get(photoId.toString());
+          if (photo) {
+            orderedPhotos.push(photo);
+            photosMap.delete(photoId.toString());
+          }
+        });
+        
+        // Then add any remaining photos
+        orderedPhotos.push(...Array.from(photosMap.values()));
+        
+        photos = orderedPhotos;
+      }
+      
       res.status(200).json({
         status: 'success',
-        count: photos.length,
         data: {
           collection: {
             title: collection.title,
             description: collection.description
           },
           photos: {
-            count: photos.length,
             items: photos
           }
         }
       });
     } catch (error) {
-      console.error('Error fetching photos:', error);
+      console.error('Error fetching collection photos:', error);
       res.status(500).json({
         status: 'error',
-        message: 'Error fetching photos'
+        message: 'Failed to fetch collection photos'
       });
     }
   };

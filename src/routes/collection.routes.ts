@@ -1,6 +1,6 @@
 // server/src/routes/collection.routes.ts
 import express from 'express';
-import { createCollection,  getCollections, deleteCollection, getAllCollections } from '../controllers/collection.controller.js';
+import { createCollection,  getCollections, deleteCollection, getAllCollections, updatePhotoOrder } from '../controllers/collection.controller.js';
 import { addPhoto } from '../controllers/photo.controller.js';
 
 import multer from 'multer';
@@ -41,6 +41,8 @@ const upload = multer({
 // Routes
 router.post('/:id/photos', authMiddleware, upload.single('photo'), photoController.addPhoto);
 router.get('/:id/photos', authMiddleware, photoController.getPhotos);
+router.get('/:id/photos/reorder', authMiddleware, updatePhotoOrder);
+
 router.delete('/:id/photos/:photoId', authMiddleware, photoController.deletePhoto);
 
 router.delete('/:id',authMiddleware, deleteCollection);
