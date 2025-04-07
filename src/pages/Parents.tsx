@@ -1,41 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
-  Paper,
   Typography,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Chip,
   IconButton,
-  Alert,
   CircularProgress,
+  Alert,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
   DialogTitle,
-  Chip
+  DialogContent,
+  DialogActions,
+  DialogContentText,
+  Tooltip
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon,AlternateEmail, SendToMobile  } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Edit as EditIcon, 
+  Delete as DeleteIcon,
+  AlternateEmail 
+} from '@mui/icons-material';
 import { Parent } from '../interfaces/parent.interface';
 import { getParents, deleteParent } from '../services/parent.service';
 
-const Parents = () => {
+const ParentList = () => {
   const navigate = useNavigate();
   const [parents, setParents] = useState<Parent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [parentToDelete, setParentToDelete] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; parentId: string | null; parentName: string }>({
+    open: false,
+    parentId: null,
+    parentName: ''
+  });
+
+  useEffect(() => {
+    fetchParents();
+  }, []);
 
   const fetchParents = async () => {
     try {
-      setError(null);
+      setLoading(true);
       const data = await getParents();
       setParents(data);
     } catch (err) {
@@ -46,22 +59,21 @@ const Parents = () => {
     }
   };
 
-  useEffect(() => {
-    fetchParents();
-  }, []);
-
-  const handleDeleteClick = (id: string) => {
-    setParentToDelete(id);
-    setDeleteDialogOpen(true);
+  const handleDeleteClick = (parentId: string, parentName: string) => {
+    setDeleteConfirm({
+      open: true,
+      parentId,
+      parentName
+    });
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!parentToDelete) return;
+  const handleDelete = async () => {
+    if (!deleteConfirm.parentId) return;
 
     try {
-      await deleteParent(parentToDelete);
-      setParents(parents.filter(parent => parent._id !== parentToDelete));
-      setDeleteDialogOpen(false);
+      await deleteParent(deleteConfirm.parentId);
+      setParents(parents.filter(parent => parent._id !== deleteConfirm.parentId));
+      setDeleteConfirm({ open: false, parentId: null, parentName: '' });
     } catch (err) {
       setError('Failed to delete parent');
       console.error('Error deleting parent:', err);
@@ -81,15 +93,17 @@ const Parents = () => {
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6">View all the parents</Typography>
         <Button
+          disableElevation
           variant="outlined"
-          size='small'
-          sx={{borderRadius: '20px'}}
+          size="small"
+          startIcon={<AddIcon />}
           onClick={() => navigate('/parents/create')}
+          sx={{ borderRadius: '20px' }}
         >
-          Add New Parent
+          Add Parent
         </Button>
       </Box>
-  
+
       {error && parents.length !== 0 && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -98,53 +112,44 @@ const Parents = () => {
           </Button>
         </Alert>
       )}
-  
-      {parents.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }} elevation={0}>
-          <Typography variant="h6" color="textSecondary" gutterBottom>
-            No Parents Available
-          </Typography>
-          <Typography color="textSecondary" sx={{ mb: 2 }}>
-            Start by creating your first parent account
-          </Typography>
-          <Button
-            variant="contained"
-            size='small'
-          sx={{borderRadius: '20px'}}
-            onClick={() => navigate('/parents/create')}
-          >
-            Add New Parent
-          </Button>
-        </Paper>
-      ) : (
-        <TableContainer component={Paper} elevation={0}>
-          <Table >
-            <TableHead>
+
+      <TableContainer component={Paper} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{fontWeight:'bold'}}>Name</TableCell>
+              <TableCell sx={{fontWeight:'bold'}}>Email</TableCell>
+              <TableCell sx={{fontWeight:'bold'}}>Phone</TableCell>
+              <TableCell sx={{fontWeight:'bold'}}>Child Name</TableCell>
+              <TableCell sx={{fontWeight:'bold'}}>Child Age</TableCell>
+              <TableCell sx={{fontWeight:'bold'}}>Permissions</TableCell>
+              <TableCell sx={{fontWeight:'bold'}} align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {parents.length === 0 ? (
               <TableRow>
-                <TableCell  sx={{fontWeight:'bold'}}>Name</TableCell>
-                <TableCell sx={{fontWeight:'bold'}}>Email</TableCell>
-                <TableCell sx={{fontWeight:'bold'}}>Phone</TableCell>
-                <TableCell sx={{fontWeight:'bold'}}>Child Name</TableCell>
-                <TableCell sx={{fontWeight:'bold'}}>Child Age</TableCell>
-                <TableCell sx={{fontWeight:'bold'}}>Permissions</TableCell>
-                <TableCell sx={{fontWeight:'bold'}} align="right">Actions</TableCell>
+                <TableCell colSpan={7} align="center">
+                  <Typography color="textSecondary" sx={{ py: 4 }}>
+                    No parents found
+                  </Typography>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {parents.map((parent) => (
+            ) : (
+              parents.map((parent) => (
                 <TableRow key={parent._id}>
                   <TableCell>{parent.name}</TableCell>
                   <TableCell><AlternateEmail sx={{fontSize:'medium', color:'green'}}/>{parent.email}</TableCell>
-                  <TableCell><SendToMobile  sx={{fontSize:'medium', color:'blue'}}/>{parent.phone}</TableCell>
+                  <TableCell>{parent.phone}</TableCell>
                   <TableCell>{parent.childName}</TableCell>
                   <TableCell>{parent.childAge}</TableCell>
                   <TableCell>
-                  <Box display="flex" gap={1}>
+                    <Box display="flex" gap={1}>
                       {parent.permissions.canView && (
                         <Chip 
                           size="small" 
                           label="View" 
-                          color="info"
+                          color="primary"
                           sx={{ borderRadius: '10px' }} 
                         />
                       )}
@@ -159,37 +164,63 @@ const Parents = () => {
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => navigate(`/parents/${parent._id}/edit`)} color="primary">
-                    <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeleteClick(parent._id)} color="error">
-                    <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Box display="flex" justifyContent="flex-end" gap={1}>
+                      <Tooltip title="Edit parent">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/parents/${parent._id}/edit`)}
+                          color="primary"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete parent">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDeleteClick(parent._id, parent.name)}
+                          color="error"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        open={deleteConfirm.open}
+        onClose={() => setDeleteConfirm({ open: false, parentId: null, parentName: '' })}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this parent? This action cannot be undone.
+            Are you sure you want to delete {deleteConfirm.parentName}? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error">Delete</Button>
+          <Button 
+            onClick={() => setDeleteConfirm({ open: false, parentId: null, parentName: '' })}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDelete}
+            color="error" 
+            variant="contained"
+            disableElevation
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 };
 
-export default Parents;
+export default ParentList;

@@ -17,24 +17,27 @@ import {
   DialogActions,
   Paper,
   Tooltip,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Slider,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   PhotoLibrary as PhotoLibraryIcon,
-  PictureAsPdf as PdfIcon
+  PictureAsPdf as PdfIcon,
+  DragHandle as DragHandleIcon
 } from '@mui/icons-material';
-import { getCollectionPhotos, deletePhotoFromCollection } from '../services/collection.service';
+import { 
+  DragDropContext, 
+  Droppable, 
+  Draggable, 
+  DropResult, 
+  DroppableProvided
+} from 'react-beautiful-dnd';
+import { getCollectionPhotos, deletePhotoFromCollection, updatePhotoOrder } from '../services/collection.service';
 import { jsPDF } from 'jspdf';
 import PDFSettingsDialog from './PDFSettingsDialog';
 import { useTheme } from '../contexts/ThemeContext';
-
 import { PDFSettings, GRID_LAYOUTS } from '../types/types';
+
 // Types
 interface Photo {
   _id: string;
@@ -42,14 +45,6 @@ interface Photo {
   title: string;
   description?: string;
 }
-// // First, update the PDFSettings interface
-// interface PDFSettings {
-//   pageSize: 'a4' | 'letter' | 'legal';
-//   orientation: 'portrait' | 'landscape';
-//   margin: number;
-//   displayMode: 'both' | 'text-only' | 'image-only';
-//   gridLayout: '2x2' | '2x3' | '3x2' | '3x3';  // new option for grid layout
-// }
 
 interface PageDimensions {
   width: number;
@@ -66,18 +61,6 @@ export const ORIENTATIONS = {
   'portrait': 'Portrait',
   'landscape': 'Landscape'
 };
-
-
-// PDF Settings Dialog Component
-interface PDFSettingsDialogProps {
-  open: boolean;
-  onClose: () => void;
-  settings: PDFSettings;
-  onSettingsChange: (settings: PDFSettings) => void;
-  onGeneratePDF: () => void;
-}
-
-
 
 // Helper function to load image
 const loadImage = (url: string): Promise<HTMLImageElement> => {
@@ -277,6 +260,7 @@ const renderTitleCard = (
     { align: 'center' }
   );
 };
+
 const calculateCardPositions = (
   pageWidth: number,
   pageHeight: number,
@@ -521,7 +505,6 @@ const generateFlashcardsPDF = async (
   return pdf;
 };
 
-
 // Main Component
 const CollectionPhotos: React.FC = () => {
   const { id: collectionId } = useParams<{ id: string }>();
@@ -539,6 +522,8 @@ const CollectionPhotos: React.FC = () => {
   const [collectionTitle, setCollectionTitle] = useState('');
   const [collectionDescription, setCollectionDescription] = useState('');
   const [userRole, setUserRole] = useState<string>('');
+  const [isReordering, setIsReordering] = useState(false);
+
   // Update the initial PDF settings
   const [pdfSettings, setPdfSettings] = useState<PDFSettings>({
     pageSize: 'a4',
@@ -549,6 +534,7 @@ const CollectionPhotos: React.FC = () => {
     gridLayout: '2x2',
     cardSize: null
   });
+  
   useEffect(() => {
     const role = localStorage.getItem('role');
     setUserRole(role || '');
@@ -556,6 +542,7 @@ const CollectionPhotos: React.FC = () => {
       fetchPhotos();
     }
   }, [collectionId]);
+  
   const canManagePhotos = () => {
     return userRole.toLowerCase() !== 'student';
   };
@@ -590,6 +577,31 @@ const CollectionPhotos: React.FC = () => {
     }
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    // If dropped outside the list or no destination
+    if (!result.destination) return;
+  
+    // Create a new array with the reordered items
+    const newPhotos = Array.from(photos);
+    const [reorderedItem] = newPhotos.splice(result.source.index, 1);
+    newPhotos.splice(result.destination.index, 0, reorderedItem);
+  
+    // Optimistically update the UI
+    setPhotos(newPhotos);
+  
+    try {
+      // Send the new order to the backend
+      const response = await updatePhotoOrder(collectionId!, 
+        newPhotos.map(photo => photo._id)
+      );
+      console.log('Update photo order response:', response);
+    } catch (error) {
+      // If update fails, revert the local state
+      console.error('Failed to update photo order', error);
+      setPhotos(photos);
+      setError('Failed to update photo order');
+    }
+  };
   const handleDownloadPDF = async () => {
     try {
       setGeneratingPdf(true);
@@ -630,7 +642,7 @@ const CollectionPhotos: React.FC = () => {
         justifyContent="center"
         alignItems="center"
         minHeight="200px"
-        sx={{ color: colors.primary }}  // Replace #6B46C1
+        sx={{ color: colors.primary }}
       >
         <CircularProgress color="inherit" />
       </Box>
@@ -660,6 +672,7 @@ const CollectionPhotos: React.FC = () => {
       </Button>
     </Tooltip>
   );
+
   // Update your render functions to use the permission check
   const renderAddPhotoButton = () => (
     canManagePhotos() && (
@@ -704,136 +717,170 @@ const CollectionPhotos: React.FC = () => {
         opacity: 0.8
       }} />
       <Typography variant="h6" sx={{ color: colors.primaryDark, mb: 2 }}>
-
         No photos added yet
       </Typography>
       {canManagePhotos() && (
-       
-          <Button
-  variant="contained"
-  startIcon={<AddIcon />}
-  onClick={() => navigate(`/collections/${collectionId}/photos/add`)}
-  sx={{
-    bgcolor: colors.primary,
-    '&:hover': {
-      bgcolor: colors.primaryDark,
-    },
-    borderRadius: 2,
-    py: 1.5,
-    px: 3,
-    boxShadow: 'none',
-  }}
->
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => navigate(`/collections/${collectionId}/photos/add`)}
+          sx={{
+            bgcolor: colors.primary,
+            '&:hover': {
+              bgcolor: colors.primaryDark,
+            },
+            borderRadius: 2,
+            py: 1.5,
+            px: 3,
+            boxShadow: 'none',
+          }}
+        >
           Add Your First Photo
         </Button>
       )}
     </Paper>
   );
 
-  // Update the photo card render function
-  const renderPhotoCard = (photo: Photo) => (
-    <Grid item xs={12} sm={6} md={4} key={photo._id}>
-      <Card
-        elevation={1}
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 4,
-          border: `1px solid ${colors.lightBg}`,
-          overflow: 'hidden',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: `0 4px 20px ${colors.primary}25`,
-            '& .image-overlay': {
-              opacity: 1,
-            },
-          },
-        }}
-      >
-        <Box sx={{ position: 'relative', height: 320 }}>
-          <CardMedia
-            component="img"
-            image={photo.url}
-            alt={photo.title}
+  // Render photo with drag and drop support
+  const renderPhotoCard = (photo: Photo, index: number) => (
+    <Draggable 
+      key={photo._id} 
+      draggableId={photo._id} 
+      index={index}
+      isDragDisabled={!isReordering || !canManagePhotos()}
+    >
+      {(provided) => (
+        <Grid 
+          item 
+          xs={12} 
+          sm={6} 
+          md={4} 
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+        >
+          <Card
+            elevation={1}
             sx={{
               height: '100%',
-              objectFit: 'contain',
-            }}
-          />
-          <Box
-            className="image-overlay"
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              bgcolor: colors.lightBg,
-              p: 2,
-              opacity: 0,
-              transition: 'opacity 0.2s',
-              borderTop: `1px solid ${colors.lightBg}`,
-            }}
-          >
-            <Typography variant="subtitle1" sx={{ color: colors.primaryDark, fontWeight: 600 }}>
-              {photo.title}
-            </Typography>
-            {photo.description && (
-              <Typography
-                variant="body2"
-                sx={{
-                  color: colors.primary,
-                  mt: 0.5,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                }}
-              >
-                {photo.description}
-              </Typography>
-            )}
-          </Box>
-          {canManagePhotos() && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                opacity: 0.8,
-                transition: 'opacity 0.2s',
-                '&:hover': {
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 4,
+              border: `1px solid ${colors.lightBg}`,
+              overflow: 'hidden',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: `0 4px 20px ${colors.primary}25`,
+                '& .image-overlay': {
                   opacity: 1,
                 },
-              }}
-            >
-              <IconButton
-                size="small"
-                onClick={() => {
-                  setPhotoToDelete(photo._id);
-                  setDeleteConfirmOpen(true);
-                }}
+              },
+            }}
+          >
+            {/* Drag handle when reordering is active */}
+            {isReordering && canManagePhotos() && (
+              <Box
+                {...provided.dragHandleProps}
                 sx={{
-                  color: colors.primary,
-                  bgcolor: 'white',
-                  boxShadow: `0 2px 8px ${colors.primary}25`,
-                  '&:hover': {
-                    bgcolor: 'white',
-                    color: colors.error,
-                  },
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  bgcolor: colors.lightBg,
+                  py: 0.5,
                 }}
               >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          )}
-        </Box>
-      </Card>
-    </Grid>
-  );
+                <DragHandleIcon 
+                  sx={{ 
+                    color: colors.primary,
+                    fontSize: 20 
+                  }} 
+                />
+              </Box>
+            )}
 
+            <Box sx={{ position: 'relative', height: 320 }}>
+              <CardMedia
+                component="img"
+                image={photo.url}
+                alt={photo.title}
+                sx={{
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+              <Box
+                className="image-overlay"
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  bgcolor: colors.lightBg,
+                  p: 2,
+                  opacity: 0,
+                  transition: 'opacity 0.2s',
+                  borderTop: `1px solid ${colors.lightBg}`,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ color: colors.primaryDark, fontWeight: 600 }}>
+                  {photo.title}
+                </Typography>
+                {photo.description && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: colors.primary,
+                      mt: 0.5,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}
+                  >
+                    {photo.description}
+                  </Typography>
+                )}
+              </Box>
+              {canManagePhotos() && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    opacity: 0.8,
+                    transition: 'opacity 0.2s',
+                    '&:hover': {
+                      opacity: 1,
+                    },
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setPhotoToDelete(photo._id);
+                      setDeleteConfirmOpen(true);
+                    }}
+                    sx={{
+                      color: colors.primary,
+                      bgcolor: 'white',
+                      boxShadow: `0 2px 8px ${colors.primary}25`,
+                      '&:hover': {
+                        bgcolor: 'white',
+                        color: colors.error,
+                      },
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
+          </Card>
+        </Grid>
+      )}
+    </Draggable>
+  );
 
   return (
     <Box sx={{
@@ -841,7 +888,8 @@ const CollectionPhotos: React.FC = () => {
       bgcolor: colors.background,
       position: 'relative',
       p: 4
-    }}>      {/* Decorative shapes */}
+    }}>
+      {/* Decorative shapes */}
       <Box
         sx={{
           position: 'fixed',
@@ -888,92 +936,128 @@ const CollectionPhotos: React.FC = () => {
             Collection Photos
           </Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            {photos.length > 0 && renderPDFButton()}
-            {renderAddPhotoButton()}
+            {photos.length > 0 && (
+              <>
+                {canManagePhotos() && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setIsReordering(!isReordering)}
+                    sx={{
+                      color: colors.primary,
+                      borderColor: colors.primary,
+                      mr: 2,
+                      '&:hover': {
+                        bgcolor: colors.lightBg,
+                      },
+                    }}
+                  >
+                    {isReordering ? 'Stop Reordering' : 'Reorder Photos'}
+                  </Button>
+                )}
+                {renderPDFButton()}
+                {renderAddPhotoButton()}
+              </>
+            )}
           </Box>
         </Box>
 
-        {/* Error Alert */}
-        {error && (
-          <Alert
-            severity="error"
-            sx={{
-              mb: 3,
-              borderRadius: 2,
-            }}
-          >
-            {error}
-            <Button
-              color="inherit"
-              size="small"
-              onClick={fetchPhotos}
-              sx={{ ml: 2 }}
-            >
-              Retry
-            </Button>
-          </Alert>
-        )}
+       {/* Error Alert */}
+{error && (
+  <Alert
+    severity="error"
+    sx={{
+      mb: 3,
+      borderRadius: 2,
+    }}
+  >
+    {error}
+    <Button
+      color="inherit"
+      size="small"
+      onClick={fetchPhotos}
+      sx={{ ml: 2 }}
+    >
+      Retry
+    </Button>
+  </Alert>
+)}
 
-        {photos.length === 0 ? renderEmptyState() : (
-          <Grid container spacing={3}>
-            {photos.map(photo => renderPhotoCard(photo))}
-          </Grid>
-        )}
-        {/* PDF Settings Dialog */}
-        <PDFSettingsDialog
-          open={pdfSettingsOpen}
-          onClose={() => setPdfSettingsOpen(false)}
-          settings={pdfSettings}
-          onSettingsChange={setPdfSettings}
-          onGeneratePDF={handleDownloadPDF}
-        />
+{/* Photos Grid with Drag and Drop */}
+<DragDropContext onDragEnd={handleDragEnd}>
+  <Droppable droppableId="photo-grid" direction="horizontal">
+    {(provided: DroppableProvided) => (
+      <Grid 
+      container 
+      spacing={3} 
+      ref={provided.innerRef}
+      {...provided.droppableProps}
+      >
+      {photos.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        photos.map((photo: Photo, index: number) => renderPhotoCard(photo, index))
+      )}
+      {provided.placeholder}
+      </Grid>
+    )}
+  </Droppable>
+</DragDropContext>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={deleteConfirmOpen}
-          onClose={() => setDeleteConfirmOpen(false)}
-          PaperProps={{
-            sx: {
-              borderRadius: 4,
-              p: 2,
-              bgcolor: colors.background,
-            }
-          }}
-        >
-          <DialogTitle sx={{ color: colors.primaryDark, fontWeight: 600 }}>
-            Delete Photo
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{ color: colors.primary }}>
-              Are you sure you want to delete this photo from the collection?
-              This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ p: 2, pt: 0 }}>
-            <Button
-              onClick={() => setDeleteConfirmOpen(false)}
-              sx={{
-                color: colors.primary,
-                '&:hover': {
-                  bgcolor: colors.lightBg,
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeletePhoto}
-              sx={{
-                color: colors.error,
-                '&:hover': {
-                  bgcolor: `${colors.error}10`,
-                },
-              }}
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+{/* PDF Settings Dialog */}
+<PDFSettingsDialog
+  open={pdfSettingsOpen}
+  onClose={() => setPdfSettingsOpen(false)}
+  settings={pdfSettings}
+  onSettingsChange={setPdfSettings}
+  onGeneratePDF={handleDownloadPDF}
+/>
+
+{/* Delete Confirmation Dialog */}
+<Dialog
+  open={deleteConfirmOpen}
+  onClose={() => setDeleteConfirmOpen(false)}
+  PaperProps={{
+    sx: {
+      borderRadius: 4,
+      p: 2,
+      bgcolor: colors.background,
+    }
+  }}
+>
+  <DialogTitle sx={{ color: colors.primaryDark, fontWeight: 600 }}>
+    Delete Photo
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText sx={{ color: colors.primary }}>
+      Are you sure you want to delete this photo from the collection?
+      This action cannot be undone.
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions sx={{ p: 2, pt: 0 }}>
+    <Button
+      onClick={() => setDeleteConfirmOpen(false)}
+      sx={{
+        color: colors.primary,
+        '&:hover': {
+          bgcolor: colors.lightBg,
+        },
+      }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={handleDeletePhoto}
+      sx={{
+        color: colors.error,
+        '&:hover': {
+          bgcolor: `${colors.error}10`,
+        },
+      }}
+    >
+      Delete
+    </Button>
+  </DialogActions>
+</Dialog>
       </Box>
     </Box>
   );

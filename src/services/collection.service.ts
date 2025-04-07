@@ -157,7 +157,23 @@ export const addPhotoToCollection = async (
   }
 };
 
-
+export const updatePhotoOrder = async (
+  collectionId: string,
+  photoIds: string[]
+): Promise<void> => {
+  try {
+    const response = await collectionApi.put(`/${collectionId}/photos/reorder`, {
+      photoIds: photoIds
+    });
+    console.log('Update photo order response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error updating photo order:', error.response?.data || error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to update photo order'
+    );
+  }
+};
 // Add to existing file, after addPhotoToCollection method
 export const deletePhotoFromCollection = async (
   collectionId: string, 
