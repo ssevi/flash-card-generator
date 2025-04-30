@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.js": "/static/js/main.22e9a5de.js",
+    "main.js": "/static/js/main.823c5d18.js",
     "static/js/239.dcefdf5a.chunk.js": "/static/js/239.dcefdf5a.chunk.js",
     "static/js/213.c5aa65ad.chunk.js": "/static/js/213.c5aa65ad.chunk.js",
     "static/js/455.2e13181e.chunk.js": "/static/js/455.2e13181e.chunk.js",
     "static/media/logo_nish.png": "/static/media/logo_nish.a790f77bd533515dbbe4.png",
     "index.html": "/index.html",
-    "main.22e9a5de.js.map": "/static/js/main.22e9a5de.js.map",
+    "main.823c5d18.js.map": "/static/js/main.823c5d18.js.map",
     "239.dcefdf5a.chunk.js.map": "/static/js/239.dcefdf5a.chunk.js.map",
     "213.c5aa65ad.chunk.js.map": "/static/js/213.c5aa65ad.chunk.js.map",
     "455.2e13181e.chunk.js.map": "/static/js/455.2e13181e.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.22e9a5de.js"
+    "static/js/main.823c5d18.js"
   ]
 }
